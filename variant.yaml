@@ -1,0 +1,54 @@
+# Trimmed copy of emscripten-forge/recipes/variant.yaml — only the keys this
+# recipe actually resolves. `${{ compiler('cxx') }}` expands to
+# `<cxx_compiler>_<target_platform> <cxx_compiler_version>`, i.e.
+# `emscripten_emscripten-wasm32 4.0.9` when --target-platform emscripten-wasm32.
+
+c_compiler:
+  - if: emscripten
+    then:
+      - emscripten
+  - if: linux
+    then:
+      - gcc
+
+cxx_compiler:
+  - if: emscripten
+    then:
+      - emscripten
+  - if: linux
+    then:
+      - gxx
+
+c_compiler_version:
+  - if: emscripten
+    then:
+      - 4.0.9
+  - if: linux
+    then:
+      - 14
+
+cxx_compiler_version:
+  - if: emscripten
+    then:
+      - 4.0.9
+  - if: linux
+    then:
+      - 14
+
+zip_keys:
+  -
+    - cxx_compiler_version
+    - c_compiler_version
+
+emscripten-abi:
+  - '4.0.9'
+
+emscripten_emscripten-wasm32:
+  - 4.0.9
+
+# JSPI is selected here via an explicit `[build=jspi*]` match spec on
+# qt6-main rather than through this variant key, but keep the key documented:
+# emscripten-forge builds both nojspi (default) and jspi variants of qt6-*.
+wasm_jspi:
+  - "0"
+  - "1"

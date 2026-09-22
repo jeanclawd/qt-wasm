@@ -1,0 +1,48 @@
+context:
+  version: "0.1.0"
+
+package:
+  name: qt-wasm-demo
+  version: ${{ version }}
+
+source:
+  # The app source lives next to the recipe, not on a release server.
+  - path: ../app
+
+build:
+  number: 0
+  script: build.sh
+
+requirements:
+  build:
+    # `emscripten` compiler + emscripten-abi, selected via variant.yaml.
+    - ${{ compiler('cxx') }}
+    - cmake
+    - ninja
+    # Native Qt6 supplies the host tools (moc, rcc, uic, qmake6) that the
+    # cross build reaches through QT_HOST_PATH. Must match the cross Qt
+    # version, hence the explicit pin.
+    - qt6-main ==6.11.2
+  host:
+    # Cross Qt6 for emscripten-wasm32. The `jspi` build string variant is
+    # required for widget apps: it is compiled with QT_FEATURE_wasm_jspi=ON
+    # so Qt's event dispatcher can yield to the browser via JavaScript
+    # Promise Integration instead of blocking the main thread.
+    - qt6-main[build=jspi*]
+
+tests:
+  - package_contents:
+      files:
+        - share/qt-wasm-demo/qt-wasm-demo.wasm
+        - share/qt-wasm-demo/qt-wasm-demo.js
+        - share/qt-wasm-demo/qt-wasm-demo.html
+        - share/qt-wasm-demo/qtloader.js
+
+about:
+  summary: Qt6 Widgets demo (filterable table + text field + button) cross-compiled to WebAssembly.
+  license: MIT
+  repository: https://github.com/jeanclawd/qt-wasm
+
+extra:
+  recipe-maintainers:
+    - jeanclawd

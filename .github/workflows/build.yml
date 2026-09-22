@@ -1,0 +1,67 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: v0.49.0
+          cache: false
+
+      - name: Show toolchain
+        run: |
+          pixi run rattler-build --version
+          pixi run python -VV
+
+      - name: Build qt-wasm-demo for emscripten-wasm32
+        run: pixi run build
+
+      - name: Collect static web bundle
+        run: pixi run python scripts/bundle.py
+
+      - name: Bundle report
+        run: |
+          echo '### Web bundle' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          ls -la dist >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload conda package as a build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qt-wasm-demo-conda-package
+          path: output/emscripten-wasm32/*.tar.bz2
+          if-no-files-found: error
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

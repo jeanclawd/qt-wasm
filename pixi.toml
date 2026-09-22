@@ -1,0 +1,42 @@
+[workspace]
+name = "qt-wasm"
+version = "0.1.0"
+description = "Qt apps in the browser via WebAssembly, built with emscripten-forge"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-arm64", "osx-64"]
+
+[dependencies]
+# Same pin emscripten-forge/recipes uses, so recipe.yaml / variant.yaml
+# semantics match exactly.
+rattler-build = ">=0.67.0,<0.68.0"
+python = "3.11.*"
+curl = "*"
+
+# ---------------------------------------------------------------------------
+# Build the recipe for emscripten-wasm32. Channels, package-format and the
+# variant file mirror emscripten-forge's own `build-emscripten-wasm32-pkg`
+# task. tar-bz2 is not optional: the qtapp runner cannot read .conda yet.
+# ---------------------------------------------------------------------------
+[tasks.build]
+cmd = [
+  "rattler-build", "build",
+  "--package-format", "tar-bz2",
+  "-c", "https://repo.prefix.dev/emscripten-forge-4x",
+  "-c", "microsoft",
+  "-c", "conda-forge",
+  "--target-platform", "emscripten-wasm32",
+  "--skip-existing", "none",
+  "-m", "variant.yaml",
+  "--recipe", "recipe/recipe.yaml",
+  "--output-dir", "output",
+]
+
+# Unpack the freshly built conda package into dist/ and drop the static
+# index.html + assets on top.
+[tasks.bundle]
+cmd = ["python", "scripts/bundle.py"]
+depends-on = ["build"]
+
+# Serve dist/ locally. No COOP/COEP headers needed — see README.
+[tasks.serve]
+cmd = ["python", "-m", "http.server", "8000", "--directory", "dist"]

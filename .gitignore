@@ -1,0 +1,6 @@
+output/
+dist/
+.pixi/
+pixi.lock
+build/
+*.tar.bz2
