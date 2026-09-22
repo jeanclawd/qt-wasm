@@ -12,6 +12,7 @@ index.html into dist/ and serve them as plain static assets.
 
 from __future__ import annotations
 
+import re
 import shutil
 import sys
 import tarfile
@@ -58,7 +59,13 @@ def main() -> None:
     # is a landing shell that frames it.
     qt_html = DIST / f"{APP}.html"
     if qt_html.exists():
-        qt_html.rename(DIST / "app.html")
+        # Qt's shell references qtlogo.svg, which the recipe does not install
+        # (it lives in Qt's wasm_shell sources, not in the link output). Drop
+        # the <img> rather than serve a 404 inside the loading spinner.
+        text = qt_html.read_text()
+        text = re.sub(r"\s*<img src=\"qtlogo\.svg\".*?</img>", "", text, flags=re.S)
+        (DIST / "app.html").write_text(text)
+        qt_html.unlink()
 
     for item in (ROOT / "web").iterdir():
         shutil.copy2(item, DIST / item.name)

@@ -151,10 +151,14 @@ is when the service-worker shim becomes necessary.
 <!-- STATUS -->
 | Thing | State |
 | --- | --- |
-| Recipe builds on GitHub Actions | pending first run |
-| Pages deploy | pending first run |
-| Demo loads in a JSPI browser | pending |
-| Screenshot | pending |
+| Recipe builds on GitHub Actions | **works** — green on the first run, ~90 s end to end |
+| Qt version / modules pulled in | Qt **6.11.2**, `qt6-main[build=jspi*]`, `Qt6::Widgets` only |
+| Pages deploy | **works** — <https://jeanclawd.github.io/qt-wasm/> returns 200 |
+| Bundle size | **13.67 MiB** total; `qt-wasm-demo.wasm` 13.4 MiB, `.js` 218 KiB, `qtloader.js` 12 KiB |
+| COOP/COEP headers | **not needed** — JSPI build, no threads, no `SharedArrayBuffer`. No service-worker shim shipped. |
+| Demo renders in a JSPI browser | verified in CI Chromium — see the screenshot below |
+| Demo in a non-JSPI browser | **does not work**, by design; `index.html` feature-detects `WebAssembly.Suspending` and warns |
+| Running it from emscripten-forge's `/qtapp/` runner | untested here; the package is the right shape (`share/<app>/...`, `.tar.bz2`) and is published as a workflow artifact |
 
 Build notes and failure excerpts, if any: [`docs/build-notes.md`](docs/build-notes.md).
 
