@@ -6,6 +6,13 @@ WebAssembly with [emscripten-forge](https://emscripten-forge.org/).
 Live demo: **https://jeanclawd.github.io/qt-wasm/**
 (needs a JSPI-capable browser — Chrome 137+, Firefox 141+, Safari 18.4+)
 
+![The demo running in Chromium 153: a Qt Widgets window with a filter field, a
+Resample button and a sortable table of fake measurements](docs/screenshot.png)
+
+That is a real `QTableView` over a `QSortFilterProxyModel`, laid out by Qt,
+rendered to a canvas, in a browser tab. The status line is printed by the app
+itself: `Qt 6.11.2 · wasm32 (emscripten-forge)`.
+
 ---
 
 ## What the sources say
@@ -156,11 +163,17 @@ is when the service-worker shim becomes necessary.
 | Pages deploy | **works** — <https://jeanclawd.github.io/qt-wasm/> returns 200 |
 | Bundle size | **13.67 MiB** total; `qt-wasm-demo.wasm` 13.4 MiB, `.js` 218 KiB, `qtloader.js` 12 KiB |
 | COOP/COEP headers | **not needed** — JSPI build, no threads, no `SharedArrayBuffer`. No service-worker shim shipped. |
-| Demo renders in a JSPI browser | verified in CI Chromium — see the screenshot below |
+| Demo renders in a JSPI browser | **works** — screenshotted above in Chromium 153 (`.github/workflows/screenshot.yml`); filter field, sortable header, alternating rows and Qt's own font all correct |
 | Demo in a non-JSPI browser | **does not work**, by design; `index.html` feature-detects `WebAssembly.Suspending` and warns |
 | Running it from emscripten-forge's `/qtapp/` runner | untested here; the package is the right shape (`share/<app>/...`, `.tar.bz2`) and is published as a workflow artifact |
 
-Build notes and failure excerpts, if any: [`docs/build-notes.md`](docs/build-notes.md).
+Not tested, and deliberately so: touch input, `QFileDialog` against the host
+filesystem, clipboard, anything with a `QTimer`-driven animation (the sources
+warn this can starve the browser main thread under JSPI), and any Qt module
+beyond `Qt6::Widgets`.
+
+Full notes, including every gotcha hit on the way:
+[`docs/build-notes.md`](docs/build-notes.md).
 
 ## License
 

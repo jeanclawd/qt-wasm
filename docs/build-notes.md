@@ -59,3 +59,14 @@ statically linked and there is no dead-code-stripping miracle. It gzips well
   With JSPI there are no threads, so the bundle is ordinary static files and
   GitHub Pages — which cannot set response headers — is sufficient. No
   `coi-serviceworker.js` shim is shipped.
+
+## Verification
+
+`screenshot.yml` (manual `workflow_dispatch`) drives Playwright's Chromium
+153 against the live Pages URL, waits 25 s for the wasm module to
+instantiate, and uploads `screenshot.png`. That run is green and the image is
+in `docs/`. Chromium 153 ships JSPI on by default; no flag was needed, and
+no COOP/COEP headers were set anywhere.
+
+Boot on a warm cache is a couple of seconds; the first load has to pull
+13.4 MiB of `.wasm` over the wire.
